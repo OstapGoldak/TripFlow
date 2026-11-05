@@ -1,0 +1,142 @@
+<UserControl x:Class="TripFlow.Views.TripsOverviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="40,29,40,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Панель інструментів: ті самі 3 колонки (*,24,*,24,*), що й у сітці карток -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Усі"
+                             IsChecked="True" IsEnabled="False"/>
+                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Заплановані" IsEnabled="False"/>
+                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Завершені" IsEnabled="False"/>
+            </StackPanel>
+
+            <Grid Grid.Column="2">
+                <TextBox x:Name="SearchBox" Style="{StaticResource SearchBox}" Padding="40,0,16,0" IsEnabled="False"/>
+                <TextBlock Text="&#xE721;" FontFamily="{StaticResource IconFont}" FontSize="14"
+                           Foreground="{StaticResource DimBrush}" Margin="12,0,0,0"
+                           VerticalAlignment="Center" IsHitTestVisible="False"/>
+                <TextBlock Text="Пошук поїздки…" Margin="40,0,0,0" VerticalAlignment="Center"
+                           Foreground="{StaticResource FaintBrush}" IsHitTestVisible="False">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </Grid>
+
+            <Button Grid.Column="4" HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}"
+                    Content="+ Нова подорож" Height="40" Padding="20,0"
+                    Command="{Binding CreateTripCommand}"/>
+        </Grid>
+
+        <TextBlock Grid.Row="1" Style="{StaticResource ErrorText}" Margin="0,16,0,0"
+                   Text="{Binding ErrorMessage}"
+                   Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+
+        <ScrollViewer Grid.Row="2" Margin="0,30,0,0" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <!-- Від'ємний правий відступ: проміжок між картками 24px, а крайні картки впритул до полів -->
+                <ItemsControl ItemsSource="{Binding Trips}" Margin="0,0,-20,0">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="3"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource Card}" Margin="0,0,20,20">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold"
+                                                   TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                        <Border Grid.Column="1" Style="{StaticResource StatusBadge}" Margin="12,0,0,0">
+                                            <TextBlock Text="{Binding StatusText}" Style="{StaticResource StatusBadgeText}"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <TextBlock Text="{Binding DatesText}" Style="{StaticResource Dim}" Margin="0,16,0,0"
+                                               TextTrimming="CharacterEllipsis"/>
+
+                                    <Grid Margin="0,16,0,0">
+                                        <TextBlock Text="Пакування речей" Style="{StaticResource Dim}"/>
+                                        <TextBlock Text="{Binding PackingText}" Style="{StaticResource Dim}"
+                                                   HorizontalAlignment="Right"/>
+                                    </Grid>
+                                    <ProgressBar Margin="0,8,0,0" Value="{Binding PackingPercent, Mode=OneWay}">
+                                        <ProgressBar.Style>
+                                            <Style TargetType="ProgressBar" BasedOn="{StaticResource {x:Type ProgressBar}}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsOverBudget}" Value="True">
+                                                        <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </ProgressBar.Style>
+                                    </ProgressBar>
+
+                                    <Grid Margin="0,16,0,0">
+                                        <TextBlock Text="Бюджет"/>
+                                        <TextBlock Text="{Binding BudgetText}" FontWeight="Bold" HorizontalAlignment="Right">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsOverBudget}" Value="True">
+                                                            <Setter Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Grid>
+
+                                    <Grid Margin="0,16,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Style="{StaticResource BoldButton}" Content="Відкрити" Height="42" IsEnabled="False"/>
+                                        <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE74D;"
+                                                ToolTip="Видалити подорож"
+                                                Width="38" Height="38" VerticalAlignment="Top"
+                                                Command="{Binding DataContext.DeleteTripCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="Подорожей не знайдено. Створіть першу кнопкою «+ Нова подорож»."
+                           Style="{StaticResource Dim}" HorizontalAlignment="Left" VerticalAlignment="Top"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
