@@ -15,6 +15,11 @@
                 <views:TripsOverviewView/>
             </DataTemplate>
 
+            <!-- Вікно поїздки з вкладками -->
+            <DataTemplate DataType="{x:Type vm:TripDetailsViewModel}">
+                <views:TripDetailsView/>
+            </DataTemplate>
+
             <!-- Поля форми для FormWindow -->
             <DataTemplate DataType="{x:Type vm:TripFormViewModel}">
                 <forms:TripFormView/>
