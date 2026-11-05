@@ -28,6 +28,12 @@ public partial class TripsOverviewViewModel : ViewModelBase
 
     public bool IsEmpty => Trips.Count == 0;
 
+    /// <summary>Повідомляє MainViewModel, що користувач натиснув «Відкрити» на картці поїздки.</summary>
+    public event Action<TripCardViewModel>? OpenRequested;
+
+    [RelayCommand]
+    private void OpenTrip(TripCardViewModel card) => OpenRequested?.Invoke(card);
+    
     public async Task LoadAsync()
     {
         try

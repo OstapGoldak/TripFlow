@@ -37,3 +37,21 @@ BEGIN
     CREATE INDEX IX_Activities_TripId_Date_Time
         ON dbo.Activities (TripId, [Date], [Time]);
 END
+
+IF OBJECT_ID(N'dbo.PackingItems', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.PackingItems
+    (
+        Id       INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_PackingItems PRIMARY KEY,
+        TripId   INT               NOT NULL,
+        Name     NVARCHAR(255)     NOT NULL,
+        Category NVARCHAR(50)      NOT NULL,
+        IsPacked BIT               NOT NULL CONSTRAINT DF_PackingItems_IsPacked DEFAULT (0),
+        CONSTRAINT FK_PackingItems_Trips FOREIGN KEY (TripId)
+            REFERENCES dbo.Trips (Id) ON DELETE CASCADE,
+        CONSTRAINT CK_PackingItems_Category
+            CHECK (Category IN (N'Documents', N'Clothing', N'Electronics', N'FirstAid', N'Other'))
+    );
+
+    CREATE INDEX IX_PackingItems_TripId ON dbo.PackingItems (TripId);
+END

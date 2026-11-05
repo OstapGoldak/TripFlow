@@ -120,7 +120,9 @@
                                             <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <Button Style="{StaticResource BoldButton}" Content="Відкрити" Height="42" IsEnabled="False"/>
+                                        <Button Style="{StaticResource BoldButton}" Content="Відкрити" Height="42"
+                                                Command="{Binding DataContext.OpenTripCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
                                         <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE74D;"
                                                 ToolTip="Видалити подорож"
                                                 Width="38" Height="38" VerticalAlignment="Top"
@@ -139,4 +141,4 @@
             </Grid>
         </ScrollViewer>
     </Grid>
-</UserControl>
+</UserControl>          

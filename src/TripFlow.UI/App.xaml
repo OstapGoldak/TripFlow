@@ -15,10 +15,15 @@
                 <views:TripsOverviewView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vm:PackingViewModel}">
+                <views:PackingView/>
+            </DataTemplate>
+            
             <!-- Поля форми для FormWindow -->
             <DataTemplate DataType="{x:Type vm:TripFormViewModel}">
                 <forms:TripFormView/>
             </DataTemplate>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>
