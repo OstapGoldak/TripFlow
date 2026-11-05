@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using TripFlow.BLL;
 using TripFlow.Models;
 using TripFlow.Services;
+using Serilog;
 
 namespace TripFlow.ViewModels;
 
@@ -14,11 +15,13 @@ public partial class TripsOverviewViewModel : ViewModelBase
 {
     private readonly ITripService _tripService;
     private readonly IDialogService _dialogs;
+    private readonly ILogger _log;
 
-    public TripsOverviewViewModel(ITripService tripService, IDialogService dialogs)
+    public TripsOverviewViewModel(ITripService tripService, IDialogService dialogs, ILogger log)
     {
         _tripService = tripService;
         _dialogs = dialogs;
+        _log = log;
     }
 
     public ObservableCollection<TripCardViewModel> Trips { get; } = new();
@@ -42,6 +45,7 @@ public partial class TripsOverviewViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            _log.Error(ex, "Не вдалося завантажити поїздки");
             ErrorMessage = "Не вдалося завантажити поїздки: " + ex.Message;
         }
     }
@@ -66,10 +70,12 @@ public partial class TripsOverviewViewModel : ViewModelBase
                 EndDate = data.EndDate,
                 Budget = data.Budget
             });
+            _log.Information("Поїздку створено: {Name}", data.Name);
             await LoadAsync();
         }
         catch (Exception ex)
         {
+            _log.Error(ex, "Не вдалося зберегти поїздку {Name}", data.Name);
             ErrorMessage = "Не вдалося зберегти поїздку: " + ex.Message;
         }
     }
@@ -85,10 +91,12 @@ public partial class TripsOverviewViewModel : ViewModelBase
         try
         {
             await _tripService.DeleteAsync(card.Id);
+            _log.Information("Поїздку видалено: {TripId}", card.Id);
             await LoadAsync();
         }
         catch (Exception ex)
         {
+            _log.Error(ex, "Не вдалося видалити поїздку {TripId}", card.Id);
             ErrorMessage = "Не вдалося видалити поїздку: " + ex.Message;
         }
     }

@@ -1,7 +1,9 @@
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using TripFlow.BLL;
 using TripFlow.DAL;
 using TripFlow.Services;
@@ -11,14 +13,21 @@ namespace TripFlow;
 
 public partial class App : Application
 {
+    private static readonly string LogsDirectory = Path.Combine(AppContext.BaseDirectory, "logs");
     private ServiceProvider? _provider;
 
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
+        ConfigureLogging();
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            Log.Fatal(args.ExceptionObject as Exception, "Необроблена помилка у фоновому потоці");
+
         try
         {
+            Log.Information("Запуск TripFlow");
             _provider = ConfigureServices();
 
             // 1. Створити базу й таблицю Trips, якщо їх ще немає
@@ -30,9 +39,11 @@ public partial class App : Application
             window.Show();
 
             await _provider.GetRequiredService<MainViewModel>().Overview.LoadAsync();
+            Log.Information("TripFlow запущено");
         }
         catch (Exception ex)
         {
+            Log.Fatal(ex, "Не вдалося запустити TripFlow");
             MessageBox.Show(
                 "Не вдалося запустити TripFlow.\n\n" + ex.Message +
                 "\n\nПеревірте, що встановлено SQL Server LocalDB, та рядок підключення в appsettings.json.",
@@ -43,14 +54,41 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        Log.Information("Завершення роботи TripFlow");
         _provider?.Dispose();
+        Log.CloseAndFlush();
         base.OnExit(e);
+    }
+
+    /// <summary>Глобальний обробник: записує помилку в журнал і не дає програмі закритися.</summary>
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        Log.Error(e.Exception, "Необроблена помилка інтерфейсу");
+        MessageBox.Show(
+            "Сталася неочікувана помилка. Програма продовжить роботу.\n\nПодробиці записано в журнал:\n" + LogsDirectory,
+            "TripFlow", MessageBoxButton.OK, MessageBoxImage.Error);
+        e.Handled = true;
+    }
+
+    private static void ConfigureLogging()
+    {
+        Log.Logger = new LoggerConfiguration()
+            .MinimumLevel.Information()
+            .WriteTo.File(
+                Path.Combine(LogsDirectory, "tripflow-.log"),
+                rollingInterval: RollingInterval.Day,
+                retainedFileCountLimit: 14,
+                outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+            .CreateLogger();
     }
 
     /// <summary>Єдине місце створення об'єктів (Dependency Injection).</summary>
     private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
+
+        // Логер
+        services.AddSingleton<ILogger>(Log.Logger);
 
         // DAL
         services.AddSingleton(new SqlConnectionFactory(ReadConnectionString()));
