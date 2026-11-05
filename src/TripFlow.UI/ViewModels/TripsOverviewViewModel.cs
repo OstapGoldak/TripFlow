@@ -16,14 +16,16 @@ public partial class TripsOverviewViewModel : ViewModelBase
     private readonly ITripService _tripService;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
+    private readonly IPackingService _packingService;
 
-    public TripsOverviewViewModel(ITripService tripService, IDialogService dialogs, ILogger log)
-    {
-        _tripService = tripService;
-        _dialogs = dialogs;
-        _log = log;
-    }
-
+    public TripsOverviewViewModel(ITripService tripService, IPackingService packingService,
+    IDialogService dialogs, ILogger log)
+{
+    _tripService = tripService;
+    _packingService = packingService;
+    _dialogs = dialogs;
+    _log = log;
+}
     public ObservableCollection<TripCardViewModel> Trips { get; } = new();
 
     public bool IsEmpty => Trips.Count == 0;
@@ -33,7 +35,7 @@ public partial class TripsOverviewViewModel : ViewModelBase
 
     [RelayCommand]
     private void OpenTrip(TripCardViewModel card) => OpenRequested?.Invoke(card);
-    
+
     public async Task LoadAsync()
     {
         try
@@ -42,10 +44,10 @@ public partial class TripsOverviewViewModel : ViewModelBase
 
             Trips.Clear();
             foreach (var trip in trips)
-            {
-                Trips.Add(new TripCardViewModel(trip));
-            }
-
+{
+    var items = await _packingService.GetByTripAsync(trip.Id);
+    Trips.Add(new TripCardViewModel(trip, items.Count(i => i.IsPacked), items.Count));
+}
             OnPropertyChanged(nameof(IsEmpty));
             ErrorMessage = null;
         }
