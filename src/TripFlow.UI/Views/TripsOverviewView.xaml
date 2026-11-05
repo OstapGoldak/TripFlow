@@ -18,11 +18,14 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
+            <!-- Фільтр за статусом -->
             <StackPanel Grid.Column="0" Orientation="Horizontal">
                 <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Усі"
-                             IsChecked="True" IsEnabled="False"/>
-                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Заплановані" IsEnabled="False"/>
-                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Завершені" IsEnabled="False"/>
+                             IsChecked="{Binding IsAllFilter, Mode=TwoWay}"/>
+                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Заплановані"
+                             IsChecked="{Binding IsPlannedFilter, Mode=TwoWay}"/>
+                <RadioButton Style="{StaticResource FilterRadio}" GroupName="TripFilter" Content="Завершені"
+                             IsChecked="{Binding IsCompletedFilter, Mode=TwoWay}"/>
             </StackPanel>
 
             <Grid Grid.Column="2">
@@ -56,8 +59,9 @@
 
         <ScrollViewer Grid.Row="2" Margin="0,30,0,0" VerticalScrollBarVisibility="Auto">
             <Grid>
-                <!-- Від'ємний правий відступ: проміжок між картками 24px, а крайні картки впритул до полів -->
-                <ItemsControl ItemsSource="{Binding Trips}" Margin="0,0,-20,0">
+                <!-- Від'ємний правий відступ: проміжок між картками 24px, а крайні картки впритул до полів.
+                     VerticalAlignment=Top: картки мають свою висоту й не розтягуються на весь екран. -->
+                <ItemsControl ItemsSource="{Binding Trips}" Margin="0,0,-20,0" VerticalAlignment="Top">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Columns="3"/>
@@ -65,7 +69,7 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource Card}" Margin="0,0,20,20">
+                            <Border Style="{StaticResource Card}" Margin="0,0,20,20" VerticalAlignment="Top">
                                 <StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -120,7 +124,9 @@
                                             <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <Button Style="{StaticResource BoldButton}" Content="Відкрити" Height="42" IsEnabled="False"/>
+                                        <Button Style="{StaticResource BoldButton}" Content="Відкрити" Height="42"
+                                                Command="{Binding DataContext.OpenTripCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
                                         <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE74D;"
                                                 ToolTip="Видалити подорож"
                                                 Width="38" Height="38" VerticalAlignment="Top"
