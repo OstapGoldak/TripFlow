@@ -94,9 +94,11 @@ public partial class App : Application
         services.AddSingleton(new SqlConnectionFactory(ReadConnectionString()));
         services.AddSingleton<DatabaseInitializer>();
         services.AddSingleton<ITripRepository, TripRepository>();
+        services.AddSingleton<IActivityRepository, ActivityRepository>();
 
         // BLL
         services.AddSingleton<ITripService, TripService>();
+        services.AddSingleton<IItineraryService, ItineraryService>();
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();

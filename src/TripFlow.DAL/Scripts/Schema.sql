@@ -16,3 +16,24 @@ BEGIN
         CONSTRAINT CK_Trips_Dates  CHECK (EndDate >= StartDate)
     );
 END
+
+IF OBJECT_ID(N'dbo.Activities', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Activities
+    (
+        Id            INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Activities PRIMARY KEY,
+        TripId        INT               NOT NULL,
+        [Date]        DATE              NOT NULL,
+        [Time]        TIME(0)           NOT NULL,
+        Title         NVARCHAR(255)     NOT NULL,
+        Location      NVARCHAR(255)     NULL,
+        EstimatedCost DECIMAL(18,2)     NULL,
+        Note          NVARCHAR(1000)    NULL,
+        CONSTRAINT FK_Activities_Trips FOREIGN KEY (TripId)
+            REFERENCES dbo.Trips (Id) ON DELETE CASCADE,
+        CONSTRAINT CK_Activities_EstimatedCost CHECK (EstimatedCost IS NULL OR EstimatedCost >= 0)
+    );
+
+    CREATE INDEX IX_Activities_TripId_Date_Time
+        ON dbo.Activities (TripId, [Date], [Time]);
+END
