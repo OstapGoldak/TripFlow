@@ -109,7 +109,8 @@ public partial class App : Application
         services.AddSingleton<MainWindow>();
         services.AddTransient<BudgetViewModel>();
         services.AddSingleton<Func<BudgetViewModel>>(sp => () => sp.GetRequiredService<BudgetViewModel>());
-
+        services.AddTransient<ItineraryViewModel>();
+        services.AddSingleton<Func<ItineraryViewModel>>(sp => () => sp.GetRequiredService<ItineraryViewModel>());
         return services.BuildServiceProvider();
     }
 

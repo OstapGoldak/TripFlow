@@ -1,0 +1,124 @@
+﻿<UserControl x:Class="TripFlow.Views.ItineraryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <!-- Пункт у списку днів: обраний день підсвічується синім (як на макеті UI/2final.png) -->
+        <Style x:Key="DayItem" TargetType="ListBoxItem">
+            <Setter Property="Foreground" Value="{StaticResource DimBrush}"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" Padding="14,12" CornerRadius="8" BorderThickness="1"
+                                Background="Transparent" BorderBrush="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource FieldBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource AccentSoftBrush}"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="32"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Ліва колонка: дні поїздки -->
+        <DockPanel Grid.Column="0">
+            <TextBlock DockPanel.Dock="Top" Text="ДНІ ПОЇЗДКИ" Style="{StaticResource Dim}"
+                       FontSize="12" Margin="0,0,0,12"/>
+            <ListBox ItemsSource="{Binding Days}" SelectedItem="{Binding SelectedDay, Mode=TwoWay}"
+                     DisplayMemberPath="Text" ItemContainerStyle="{StaticResource DayItem}"
+                     Background="Transparent" BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+        </DockPanel>
+
+        <Border Grid.Column="1" Width="1" HorizontalAlignment="Center" Background="{StaticResource LineBrush}"/>
+
+        <!-- Права частина: події обраного дня -->
+        <Grid Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <TextBlock Text="{Binding SelectedDayTitle}" Style="{StaticResource Heading}"
+                           VerticalAlignment="Center"/>
+                <Button HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}"
+                        Content="+ Додати подію" Height="40" Padding="20,0"
+                        Command="{Binding AddActivityCommand}"/>
+            </Grid>
+
+            <TextBlock Grid.Row="1" Style="{StaticResource ErrorText}" Margin="0,16,0,0"
+                       Text="{Binding ErrorMessage}"
+                       Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+
+            <ScrollViewer Grid.Row="2" Margin="0,20,0,0" VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <ItemsControl ItemsSource="{Binding Activities}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="90"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" Text="{Binding TimeText}" Style="{StaticResource Dim}"
+                                                   VerticalAlignment="Center"/>
+
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="15"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding DetailsText}" Style="{StaticResource Dim}"
+                                                       Margin="0,6,0,0" TextTrimming="CharacterEllipsis"
+                                                       Visibility="{Binding HasDetails, Converter={StaticResource BoolToVis}}"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="2" Text="{Binding CostText}" FontWeight="Bold"
+                                                   VerticalAlignment="Center" Margin="16,0,16,0"/>
+
+                                        <Button Grid.Column="3" Style="{StaticResource IconButton}" Content="&#xE70F;"
+                                                Width="38" Height="38" Margin="0,0,8,0" ToolTip="Редагувати подію"
+                                                Command="{Binding DataContext.EditActivityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                        <Button Grid.Column="4" Style="{StaticResource IconButton}" Content="&#xE74D;"
+                                                Width="38" Height="38" ToolTip="Видалити подію"
+                                                Command="{Binding DataContext.DeleteActivityCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="Подій на цей день ще немає. Додайте першу кнопкою «+ Додати подію»."
+                               Style="{StaticResource Dim}" HorizontalAlignment="Left" VerticalAlignment="Top"
+                               Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>
