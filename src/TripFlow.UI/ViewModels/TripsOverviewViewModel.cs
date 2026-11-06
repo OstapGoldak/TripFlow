@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TripFlow.BLL;
@@ -10,20 +10,23 @@ namespace TripFlow.ViewModels;
 
 /// <summary>
 /// Головний екран: список поїздок із бази (UI → BLL → DAL → LocalDB),
-/// фільтр за статусом, створення поїздки через форму, відкриття та видалення.
+/// фільтр за статусом, прогрес пакування на картках, створення, відкриття та видалення.
 /// </summary>
 public partial class TripsOverviewViewModel : ViewModelBase
 {
     private readonly ITripService _tripService;
+    private readonly IPackingService _packingService;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
 
     /// <summary>Усі поїздки з бази (без фільтра).</summary>
     private List<TripCardViewModel> _allTrips = new();
 
-    public TripsOverviewViewModel(ITripService tripService, IDialogService dialogs, ILogger log)
+    public TripsOverviewViewModel(ITripService tripService, IPackingService packingService,
+        IDialogService dialogs, ILogger log)
     {
         _tripService = tripService;
+        _packingService = packingService;
         _dialogs = dialogs;
         _log = log;
     }
@@ -78,7 +81,15 @@ public partial class TripsOverviewViewModel : ViewModelBase
         {
             var trips = await _tripService.GetAllAsync();
 
-            _allTrips = trips.Select(t => new TripCardViewModel(t)).ToList();
+            var cards = new List<TripCardViewModel>();
+            foreach (var trip in trips)
+            {
+                // Прогрес пакування на картці: скільки речей спаковано з усіх
+                var items = await _packingService.GetByTripAsync(trip.Id);
+                cards.Add(new TripCardViewModel(trip, items.Count(i => i.IsPacked), items.Count));
+            }
+
+            _allTrips = cards;
             ApplyFilter();
             ErrorMessage = null;
         }
@@ -99,9 +110,7 @@ public partial class TripsOverviewViewModel : ViewModelBase
         if (!_dialogs.ShowForm(form))
         {
             return;
-        }
-
-        var data = form.Result!;
+        }var data = form.Result!;
         try
         {
             await _tripService.AddAsync(new Trip

@@ -1,0 +1,120 @@
+<UserControl x:Class="TripFlow.Views.PackingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Прогрес збору -->
+        <StackPanel Grid.Row="0">
+            <Grid>
+                <TextBlock Text="Прогрес збору" Style="{StaticResource Dim}"/>
+                <TextBlock Text="{Binding ProgressText}" Style="{StaticResource Dim}"
+                           HorizontalAlignment="Right"/>
+            </Grid>
+            <ProgressBar Margin="0,8,0,0" Maximum="100" Value="{Binding ProgressPercent, Mode=OneWay}"/>
+        </StackPanel>
+
+        <!-- Додавання речі -->
+        <StackPanel Grid.Row="1" Margin="0,24,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Style="{StaticResource SearchBox}" Padding="16,0" Height="40"
+                         Text="{Binding NewItemName, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding AddItemCommand}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+                <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Content="+ Додати річ"
+                        Height="40" Padding="20,0" Command="{Binding AddItemCommand}"/>
+            </Grid>
+
+            <ItemsControl ItemsSource="{Binding Categories}" Margin="0,12,0,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <RadioButton Style="{StaticResource FilterRadio}" GroupName="NewItemCategory"
+                                     Content="{Binding Title}" IsChecked="{Binding IsSelected, Mode=TwoWay}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Style="{StaticResource ErrorText}" Margin="0,16,0,0"
+                   Text="{Binding ErrorMessage}"
+                   Visibility="{Binding HasError, Converter={StaticResource BoolToVis}}"/>
+
+        <!-- Список речей, згрупований за категоріями -->
+        <ScrollViewer Grid.Row="3" Margin="0,16,0,0" VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,24">
+                                <Grid>
+                                    <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="Bold"/>
+                                    <TextBlock Text="{Binding ProgressText}" Style="{StaticResource Dim}"
+                                               HorizontalAlignment="Right"/>
+                                </Grid>
+                                <ProgressBar Margin="0,8,0,0" Maximum="100"
+                                             Value="{Binding ProgressPercent, Mode=OneWay}"/>
+
+                                <ItemsControl ItemsSource="{Binding Items}" Margin="0,8,0,0">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{StaticResource DimBrush}" BorderThickness="0,0,0,1" Padding="0,12">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsPacked, Mode=TwoWay}">
+                                                        <TextBlock Text="{Binding Name}" Margin="6,0,0,0"
+                                                                   TextTrimming="CharacterEllipsis">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsPacked}" Value="True">
+                                                                            <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                                            <Setter Property="Foreground" Value="{StaticResource DimBrush}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </CheckBox>
+
+                                                    <Button Grid.Column="1" Style="{StaticResource IconButton}" Content="&#xE74D;"
+                                                            ToolTip="Видалити річ" Width="38" Height="38"
+                                                            Command="{Binding DataContext.DeleteItemCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="Список порожній. Додайте першу річ полем вище."
+                           Style="{StaticResource Dim}" HorizontalAlignment="Left" VerticalAlignment="Top"
+                           Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

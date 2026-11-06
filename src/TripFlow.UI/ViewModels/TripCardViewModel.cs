@@ -5,7 +5,7 @@ namespace TripFlow.ViewModels;
 /// <summary>Картка поїздки у списку (лише відображення).</summary>
 public sealed class TripCardViewModel
 {
-    public TripCardViewModel(Trip trip)
+    public TripCardViewModel(Trip trip, int packedCount = 0, int totalCount = 0)
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
 
@@ -21,9 +21,9 @@ public sealed class TripCardViewModel
         };
         DatesText = $"{trip.StartDate:dd.MM.yyyy} – {trip.EndDate:dd.MM.yyyy}";
 
-        // Пакування та витрати з'являться разом з чек-листом і бюджетом
-        PackingPercent = 0;
-        PackingText = "0%";
+        // Пакування рахується з чек-листа; витрати з'являться разом з бюджетом
+        PackingPercent = totalCount == 0 ? 0 : (double)packedCount / totalCount * 100;
+        PackingText = totalCount == 0 ? "0%" : $"{packedCount} з {totalCount} ({PackingPercent:0}%)";
         BudgetText = $"0 ₴ / {trip.Budget:N0} ₴";
     }
 

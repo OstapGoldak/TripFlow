@@ -1,4 +1,4 @@
-<Application x:Class="TripFlow.App"
+﻿<Application x:Class="TripFlow.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:TripFlow.ViewModels"
@@ -25,10 +25,11 @@
                 <forms:TripFormView/>
             </DataTemplate>
 
+            <!-- Вкладка «Бюджет» і форма витрати -->
             <DataTemplate DataType="{x:Type vm:BudgetViewModel}">
                 <views:BudgetView/>
             </DataTemplate>
-            
+
             <DataTemplate DataType="{x:Type vm:ExpenseFormViewModel}">
                 <forms:ExpenseFormView/>
             </DataTemplate>
@@ -40,6 +41,11 @@
 
             <DataTemplate DataType="{x:Type vm:ActivityFormViewModel}">
                 <forms:ActivityFormView/>
+            </DataTemplate>
+
+            <!-- Вкладка «Чек-лист» -->
+            <DataTemplate DataType="{x:Type vm:PackingViewModel}">
+                <views:PackingView/>
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

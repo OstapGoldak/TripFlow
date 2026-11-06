@@ -12,7 +12,8 @@ public partial class TripDetailsViewModel : ViewModelBase
 {
     private readonly Action _goBack;
 
-    public TripDetailsViewModel(Trip trip, Action goBack, BudgetViewModel budget, ItineraryViewModel itinerary)
+    public TripDetailsViewModel(Trip trip, Action goBack,
+        BudgetViewModel budget, ItineraryViewModel itinerary, PackingViewModel packing)
     {
         Trip = trip;
         _goBack = goBack;
@@ -23,6 +24,9 @@ public partial class TripDetailsViewModel : ViewModelBase
 
         Itinerary = itinerary;
         _ = Itinerary.LoadAsync(trip);
+
+        Packing = packing;
+        _ = Packing.LoadAsync(trip);
     }
 
     /// <summary>Обрана поїздка.</summary>
@@ -33,6 +37,9 @@ public partial class TripDetailsViewModel : ViewModelBase
 
     /// <summary>Вкладка «Розклад».</summary>
     public ItineraryViewModel Itinerary { get; }
+
+    /// <summary>Вкладка «Чек-лист».</summary>
+    public PackingViewModel Packing { get; }
 
     public string Name => Trip.Name;
 

@@ -94,16 +94,20 @@ public partial class App : Application
         services.AddSingleton(new SqlConnectionFactory(ReadConnectionString()));
         services.AddSingleton<DatabaseInitializer>();
         services.AddSingleton<ITripRepository, TripRepository>();
+        services.AddSingleton<IPackingRepository, PackingRepository>();
         services.AddSingleton<IActivityRepository, ActivityRepository>();
         services.AddSingleton<IExpenseRepository, ExpenseRepository>();
 
         // BLL
         services.AddSingleton<ITripService, TripService>();
+        services.AddSingleton<IPackingService, PackingService>();
         services.AddSingleton<IItineraryService, ItineraryService>();
         services.AddSingleton<IBudgetService, BudgetService>();
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddTransient<PackingViewModel>();
+        services.AddSingleton<Func<PackingViewModel>>(sp => () => sp.GetRequiredService<PackingViewModel>());
         services.AddSingleton<TripsOverviewViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
