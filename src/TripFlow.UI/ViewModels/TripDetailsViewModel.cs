@@ -6,20 +6,27 @@ namespace TripFlow.ViewModels;
 
 /// <summary>
 /// Вікно поїздки з вкладками «Розклад», «Бюджет», «Чек-лист».
-/// Тримає обрану поїздку; вміст вкладок додають окремі модулі.
+/// Тримає обрану поїздку та ViewModel кожної вкладки.
 /// </summary>
 public partial class TripDetailsViewModel : ViewModelBase
 {
     private readonly Action _goBack;
 
-    public TripDetailsViewModel(Trip trip, Action goBack)
+    public TripDetailsViewModel(Trip trip, Action goBack, BudgetViewModel budget)
     {
         Trip = trip;
         _goBack = goBack;
+
+        Budget = budget;
+        // LoadAsync сам перехоплює помилки й показує їх у вкладці, тому результат можна не чекати
+        _ = Budget.LoadAsync(trip);
     }
 
-    /// <summary>Обрана поїздка. Інші модулі беруть її звідси (наприклад, new ItineraryViewModel(Trip, ...)).</summary>
+    /// <summary>Обрана поїздка.</summary>
     public Trip Trip { get; }
+
+    /// <summary>Вкладка «Бюджет».</summary>
+    public BudgetViewModel Budget { get; }
 
     public string Name => Trip.Name;
 

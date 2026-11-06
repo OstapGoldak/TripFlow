@@ -108,6 +108,7 @@ public partial class App : Application
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
         services.AddTransient<BudgetViewModel>();
+        services.AddSingleton<Func<BudgetViewModel>>(sp => () => sp.GetRequiredService<BudgetViewModel>());
 
         return services.BuildServiceProvider();
     }
