@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TripFlow.Models;
 
@@ -12,14 +12,17 @@ public partial class TripDetailsViewModel : ViewModelBase
 {
     private readonly Action _goBack;
 
-    public TripDetailsViewModel(Trip trip, Action goBack, BudgetViewModel budget)
+    public TripDetailsViewModel(Trip trip, Action goBack, BudgetViewModel budget, ItineraryViewModel itinerary)
     {
         Trip = trip;
         _goBack = goBack;
 
+        // LoadAsync вкладок сам перехоплює помилки й показує їх у вкладці, тому результат можна не чекати
         Budget = budget;
-        // LoadAsync сам перехоплює помилки й показує їх у вкладці, тому результат можна не чекати
         _ = Budget.LoadAsync(trip);
+
+        Itinerary = itinerary;
+        _ = Itinerary.LoadAsync(trip);
     }
 
     /// <summary>Обрана поїздка.</summary>
@@ -27,6 +30,9 @@ public partial class TripDetailsViewModel : ViewModelBase
 
     /// <summary>Вкладка «Бюджет».</summary>
     public BudgetViewModel Budget { get; }
+
+    /// <summary>Вкладка «Розклад».</summary>
+    public ItineraryViewModel Itinerary { get; }
 
     public string Name => Trip.Name;
 

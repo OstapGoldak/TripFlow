@@ -32,7 +32,15 @@
             <DataTemplate DataType="{x:Type vm:ExpenseFormViewModel}">
                 <forms:ExpenseFormView/>
             </DataTemplate>
-            
+
+            <!-- Вкладка «Розклад» і форма події -->
+            <DataTemplate DataType="{x:Type vm:ItineraryViewModel}">
+                <views:ItineraryView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:ActivityFormViewModel}">
+                <forms:ActivityFormView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

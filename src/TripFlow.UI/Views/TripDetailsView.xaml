@@ -88,7 +88,9 @@
                     Visibility="{Binding IsScheduleTab, Converter={StaticResource BoolToVis}}">
                 <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
             </Border>
-
+            <!-- Вкладка «Розклад»: ItineraryView підставляється через DataTemplate з App.xaml -->
+            <ContentControl Content="{Binding Itinerary}"
+                            Visibility="{Binding IsScheduleTab, Converter={StaticResource BoolToVis}}"/>
             <!-- Вкладка «Бюджет»: BudgetView підставляється через DataTemplate з App.xaml -->
             <ContentControl Content="{Binding Budget}"
                             Visibility="{Binding IsBudgetTab, Converter={StaticResource BoolToVis}}"/>
