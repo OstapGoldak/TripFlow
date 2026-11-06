@@ -24,6 +24,15 @@
             <DataTemplate DataType="{x:Type vm:TripFormViewModel}">
                 <forms:TripFormView/>
             </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:BudgetViewModel}">
+                <views:BudgetView/>
+            </DataTemplate>
+            
+            <DataTemplate DataType="{x:Type vm:ExpenseFormViewModel}">
+                <forms:ExpenseFormView/>
+            </DataTemplate>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>

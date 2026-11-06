@@ -89,10 +89,9 @@
                 <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
             </Border>
 
-            <Border Style="{StaticResource Card}"
-                    Visibility="{Binding IsBudgetTab, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
-            </Border>
+            <!-- Вкладка «Бюджет»: BudgetView підставляється через DataTemplate з App.xaml -->
+            <ContentControl Content="{Binding Budget}"
+                            Visibility="{Binding IsBudgetTab, Converter={StaticResource BoolToVis}}"/>
 
             <Border Style="{StaticResource Card}"
                     Visibility="{Binding IsChecklistTab, Converter={StaticResource BoolToVis}}">

@@ -95,16 +95,20 @@ public partial class App : Application
         services.AddSingleton<DatabaseInitializer>();
         services.AddSingleton<ITripRepository, TripRepository>();
         services.AddSingleton<IActivityRepository, ActivityRepository>();
+        services.AddSingleton<IExpenseRepository, ExpenseRepository>();
 
         // BLL
         services.AddSingleton<ITripService, TripService>();
         services.AddSingleton<IItineraryService, ItineraryService>();
+        services.AddSingleton<IBudgetService, BudgetService>();
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<TripsOverviewViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
+        services.AddTransient<BudgetViewModel>();
+        services.AddSingleton<Func<BudgetViewModel>>(sp => () => sp.GetRequiredService<BudgetViewModel>());
 
         return services.BuildServiceProvider();
     }
