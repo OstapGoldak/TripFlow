@@ -12,11 +12,16 @@ public partial class TripDetailsViewModel : ViewModelBase
 {
     private readonly Action _goBack;
 
-    public TripDetailsViewModel(Trip trip, Action goBack)
-    {
-        Trip = trip;
-        _goBack = goBack;
-    }
+    public TripDetailsViewModel(Trip trip, PackingViewModel packing, Action goBack)
+{
+    Trip = trip;
+    Packing = packing;
+    _goBack = goBack;
+    _ = Packing.LoadAsync(trip);
+}
+
+/// <summary>Вкладка «Чек-лист».</summary>
+public PackingViewModel Packing { get; }
 
     /// <summary>Обрана поїздка. Інші модулі беруть її звідси (наприклад, new ItineraryViewModel(Trip, ...)).</summary>
     public Trip Trip { get; }

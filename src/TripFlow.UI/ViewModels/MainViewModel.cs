@@ -6,9 +6,12 @@ namespace TripFlow.ViewModels;
 /// <summary>Оболонка вікна: тримає поточний екран і перемикає екрани.</summary>
 public partial class MainViewModel : ObservableObject
 {
-    public MainViewModel(TripsOverviewViewModel overview)
+    private readonly Func<PackingViewModel> _createPacking;
+
+    public MainViewModel(TripsOverviewViewModel overview, Func<PackingViewModel> createPacking)
     {
         Overview = overview;
+        _createPacking = createPacking;
         Overview.OpenTripRequested += OpenTrip;
         CurrentViewModel = overview;
     }
@@ -20,7 +23,7 @@ public partial class MainViewModel : ObservableObject
 
     /// <summary>Список → вікно поїздки.</summary>
     private void OpenTrip(Trip trip) =>
-        CurrentViewModel = new TripDetailsViewModel(trip, ShowOverview);
+        CurrentViewModel = new TripDetailsViewModel(trip, _createPacking(), ShowOverview);
 
     /// <summary>Вікно поїздки → список (з оновленням даних).</summary>
     private async void ShowOverview()

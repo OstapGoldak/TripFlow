@@ -104,6 +104,8 @@ public partial class App : Application
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();
+        services.AddTransient<PackingViewModel>();
+        services.AddSingleton<Func<PackingViewModel>>(sp => () => sp.GetRequiredService<PackingViewModel>());
         services.AddSingleton<TripsOverviewViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();

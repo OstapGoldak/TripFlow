@@ -8,24 +8,19 @@ using TripFlow.Services;
 
 namespace TripFlow.ViewModels;
 
-/// <summary>Екран чек-листа однієї поїздки: додавання, галочка «спаковано», прогрес, видалення.</summary>
+/// <summary>Вкладка «Чек-лист» поїздки: додавання, галочка «спаковано», прогрес, видалення.</summary>
 public partial class PackingViewModel : ViewModelBase
 {
-    private readonly int _tripId;
+    private int _tripId;
     private readonly IPackingService _service;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
-    private readonly Func<Task> _goBack;
 
-    public PackingViewModel(int tripId, string tripName, IPackingService service,
-        IDialogService dialogs, ILogger log, Func<Task> goBack)
+    public PackingViewModel(IPackingService service, IDialogService dialogs, ILogger log)
     {
-        _tripId = tripId;
-        TripName = tripName;
         _service = service;
         _dialogs = dialogs;
         _log = log;
-        _goBack = goBack;
 
         foreach (var (value, title) in PackingCategories.All)
         {
@@ -33,18 +28,13 @@ public partial class PackingViewModel : ViewModelBase
         }
     }
 
-    public string TripName { get; }
-
     public ObservableCollection<PackingItemViewModel> Items { get; } = new();
-
     public ObservableCollection<PackingCategoryOption> Categories { get; } = new();
-
     public ObservableCollection<PackingGroupViewModel> Groups { get; } = new();
 
     [ObservableProperty]
     private string _newItemName = string.Empty;
 
-    // Прогрес збору
     public int TotalCount => Items.Count;
     public int PackedCount => Items.Count(i => i.IsPacked);
     public double ProgressPercent => TotalCount == 0 ? 0 : (double)PackedCount / TotalCount * 100;
@@ -53,19 +43,26 @@ public partial class PackingViewModel : ViewModelBase
 
     private void RefreshStats()
     {
-    OnPropertyChanged(nameof(TotalCount));
-    OnPropertyChanged(nameof(PackedCount));
-    OnPropertyChanged(nameof(ProgressPercent));
-    OnPropertyChanged(nameof(ProgressText));
-    OnPropertyChanged(nameof(IsEmpty));
+        OnPropertyChanged(nameof(TotalCount));
+        OnPropertyChanged(nameof(PackedCount));
+        OnPropertyChanged(nameof(ProgressPercent));
+        OnPropertyChanged(nameof(ProgressText));
+        OnPropertyChanged(nameof(IsEmpty));
 
-    foreach (var group in Groups)
+        foreach (var group in Groups)
+        {
+            group.Refresh();
+        }
+    }
+
+    /// <summary>Викликається, коли відкрито поїздку: запам'ятовує її й завантажує список речей.</summary>
+    public async Task LoadAsync(Trip trip)
     {
-        group.Refresh();
-    }
+        _tripId = trip.Id;
+        await ReloadAsync();
     }
 
-    public async Task LoadAsync()
+    private async Task ReloadAsync()
     {
         try
         {
@@ -119,7 +116,7 @@ public partial class PackingViewModel : ViewModelBase
             });
             _log.Information("Додано річ «{Name}» до поїздки {TripId}", name, _tripId);
             NewItemName = string.Empty;
-            await LoadAsync();
+            await ReloadAsync();
         }
         catch (Exception ex)
         {
@@ -140,7 +137,7 @@ public partial class PackingViewModel : ViewModelBase
         {
             await _service.DeleteAsync(item.Id);
             _log.Information("Видалено річ {ItemId}", item.Id);
-            await LoadAsync();
+            await ReloadAsync();
         }
         catch (Exception ex)
         {
@@ -148,9 +145,6 @@ public partial class PackingViewModel : ViewModelBase
             ErrorMessage = "Не вдалося видалити річ: " + ex.Message;
         }
     }
-
-    [RelayCommand]
-    private Task BackAsync() => _goBack();
 
     /// <summary>Викликається при зміні галочки: оновлює прогрес і зберігає в базу.</summary>
     private async Task OnItemToggledAsync(PackingItemViewModel item)
@@ -163,7 +157,7 @@ public partial class PackingViewModel : ViewModelBase
         catch (Exception ex)
         {
             _log.Error(ex, "Не вдалося зберегти стан речі {ItemId}", item.Id);
-            await LoadAsync();
+            await ReloadAsync();
             ErrorMessage = "Не вдалося зберегти зміну: " + ex.Message;
         }
     }

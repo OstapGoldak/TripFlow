@@ -94,10 +94,8 @@
                 <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
             </Border>
 
-            <Border Style="{StaticResource Card}"
-                    Visibility="{Binding IsChecklistTab, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
-            </Border>
+            <ContentControl Content="{Binding Packing}"
+                Visibility="{Binding IsChecklistTab, Converter={StaticResource BoolToVis}}"/>
         </Grid>
     </Grid>
 </UserControl>
