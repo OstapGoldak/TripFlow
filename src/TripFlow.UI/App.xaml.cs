@@ -96,11 +96,13 @@ public partial class App : Application
         services.AddSingleton<ITripRepository, TripRepository>();
         services.AddSingleton<IPackingRepository, PackingRepository>();
         services.AddSingleton<IActivityRepository, ActivityRepository>();
+        services.AddSingleton<IExpenseRepository, ExpenseRepository>();
 
         // BLL
         services.AddSingleton<ITripService, TripService>();
         services.AddSingleton<IPackingService, PackingService>();
         services.AddSingleton<IItineraryService, ItineraryService>();
+        services.AddSingleton<IBudgetService, BudgetService>();
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();
@@ -109,7 +111,10 @@ public partial class App : Application
         services.AddSingleton<TripsOverviewViewModel>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
-
+        services.AddTransient<BudgetViewModel>();
+        services.AddSingleton<Func<BudgetViewModel>>(sp => () => sp.GetRequiredService<BudgetViewModel>());
+        services.AddTransient<ItineraryViewModel>();
+        services.AddSingleton<Func<ItineraryViewModel>>(sp => () => sp.GetRequiredService<ItineraryViewModel>());
         return services.BuildServiceProvider();
     }
 

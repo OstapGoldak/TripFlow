@@ -1,6 +1,5 @@
 -- TripFlow: схема бази LocalDB (T-SQL).
--- Walking Skeleton: лише таблиця Trips. Activities, Expenses і PackingItems додаються пізніше.
--- Скрипт можна виконувати при кожному запуску: таблиця створюється, лише якщо її ще немає.
+-- Скрипт можна виконувати при кожному запуску: кожна таблиця створюється, лише якщо її ще немає.
 
 IF OBJECT_ID(N'dbo.Trips', N'U') IS NULL
 BEGIN
@@ -36,6 +35,26 @@ BEGIN
 
     CREATE INDEX IX_Activities_TripId_Date_Time
         ON dbo.Activities (TripId, [Date], [Time]);
+END
+
+IF OBJECT_ID(N'dbo.Expenses', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.Expenses
+    (
+        Id          INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Expenses PRIMARY KEY,
+        TripId      INT               NOT NULL,
+        [Date]      DATE              NOT NULL,
+        Amount      DECIMAL(18,2)     NOT NULL,
+        Category    NVARCHAR(50)      NOT NULL,
+        Description NVARCHAR(500)     NULL,
+        CONSTRAINT FK_Expenses_Trips FOREIGN KEY (TripId)
+            REFERENCES dbo.Trips (Id) ON DELETE CASCADE,
+        CONSTRAINT CK_Expenses_Amount CHECK (Amount > 0),
+        CONSTRAINT CK_Expenses_Category
+            CHECK (Category IN (N'Housing', N'Transport', N'Food', N'Other'))
+    );
+
+    CREATE INDEX IX_Expenses_TripId ON dbo.Expenses (TripId);
 END
 
 IF OBJECT_ID(N'dbo.PackingItems', N'U') IS NULL

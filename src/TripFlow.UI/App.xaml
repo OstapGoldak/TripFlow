@@ -25,6 +25,7 @@
                 <forms:TripFormView/>
             </DataTemplate>
 
+            <!-- Вкладка «Бюджет» і форма витрати -->
             <DataTemplate DataType="{x:Type vm:BudgetViewModel}">
                 <views:BudgetView/>
             </DataTemplate>

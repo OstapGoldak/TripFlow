@@ -1,4 +1,4 @@
-<UserControl x:Class="TripFlow.Views.TripDetailsView"
+﻿<UserControl x:Class="TripFlow.Views.TripDetailsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
@@ -84,15 +84,13 @@
         <!-- Вміст вкладок. Інші модулі замінюють заглушку у своїй вкладці власним UserControl,
              наприклад: <views:ItineraryView/> у вкладці «Розклад». -->
         <Grid Grid.Row="1" Margin="40,24,40,0">
-            <Border Style="{StaticResource Card}"
-                    Visibility="{Binding IsScheduleTab, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
-            </Border>
+            <!-- Вкладка «Розклад»: ItineraryView підставляється через DataTemplate з App.xaml -->
+            <ContentControl Content="{Binding Itinerary}"
+                            Visibility="{Binding IsScheduleTab, Converter={StaticResource BoolToVis}}"/>
 
-            <Border Style="{StaticResource Card}"
-                    Visibility="{Binding IsBudgetTab, Converter={StaticResource BoolToVis}}">
-                <TextBlock Text="Буде додано" Style="{StaticResource Dim}"/>
-            </Border>
+            <!-- Вкладка «Бюджет»: BudgetView підставляється через DataTemplate з App.xaml -->
+            <ContentControl Content="{Binding Budget}"
+                            Visibility="{Binding IsBudgetTab, Converter={StaticResource BoolToVis}}"/>
 
             <ContentControl Content="{Binding Packing}"
                 Visibility="{Binding IsChecklistTab, Converter={StaticResource BoolToVis}}"/>

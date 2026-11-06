@@ -1,4 +1,4 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TripFlow.Models;
 
@@ -6,25 +6,40 @@ namespace TripFlow.ViewModels;
 
 /// <summary>
 /// Вікно поїздки з вкладками «Розклад», «Бюджет», «Чек-лист».
-/// Тримає обрану поїздку; вміст вкладок додають окремі модулі.
+/// Тримає обрану поїздку та ViewModel кожної вкладки.
 /// </summary>
 public partial class TripDetailsViewModel : ViewModelBase
 {
     private readonly Action _goBack;
 
-    public TripDetailsViewModel(Trip trip, PackingViewModel packing, Action goBack)
-{
-    Trip = trip;
-    Packing = packing;
-    _goBack = goBack;
-    _ = Packing.LoadAsync(trip);
-}
+    public TripDetailsViewModel(Trip trip, Action goBack,
+        BudgetViewModel budget, ItineraryViewModel itinerary, PackingViewModel packing)
+    {
+        Trip = trip;
+        _goBack = goBack;
 
-/// <summary>Вкладка «Чек-лист».</summary>
-public PackingViewModel Packing { get; }
+        // LoadAsync вкладок сам перехоплює помилки й показує їх у вкладці, тому результат можна не чекати
+        Budget = budget;
+        _ = Budget.LoadAsync(trip);
 
-    /// <summary>Обрана поїздка. Інші модулі беруть її звідси (наприклад, new ItineraryViewModel(Trip, ...)).</summary>
+        Itinerary = itinerary;
+        _ = Itinerary.LoadAsync(trip);
+
+        Packing = packing;
+        _ = Packing.LoadAsync(trip);
+    }
+
+    /// <summary>Обрана поїздка.</summary>
     public Trip Trip { get; }
+
+    /// <summary>Вкладка «Бюджет».</summary>
+    public BudgetViewModel Budget { get; }
+
+    /// <summary>Вкладка «Розклад».</summary>
+    public ItineraryViewModel Itinerary { get; }
+
+    /// <summary>Вкладка «Чек-лист».</summary>
+    public PackingViewModel Packing { get; }
 
     public string Name => Trip.Name;
 
