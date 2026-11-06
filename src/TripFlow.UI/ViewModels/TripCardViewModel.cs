@@ -9,6 +9,7 @@ public sealed class TripCardViewModel
     {
         var today = DateOnly.FromDateTime(DateTime.Today);
 
+        Trip = trip;
         Id = trip.Id;
         Name = trip.Name;
         Status = today < trip.StartDate ? "Planned" : today > trip.EndDate ? "Completed" : "InProgress";
@@ -25,6 +26,9 @@ public sealed class TripCardViewModel
         PackingText = totalCount == 0 ? "0%" : $"{packedCount} з {totalCount} ({PackingPercent:0}%)";
         BudgetText = $"0 ₴ / {trip.Budget:N0} ₴";
     }
+
+    /// <summary>Поїздка, яку відкриває кнопка «Відкрити».</summary>
+    public Trip Trip { get; }
 
     public int Id { get; }
     public string Name { get; }

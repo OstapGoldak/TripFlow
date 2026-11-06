@@ -1,4 +1,4 @@
-<Application x:Class="TripFlow.App"
+﻿<Application x:Class="TripFlow.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:TripFlow.ViewModels"
@@ -15,15 +15,37 @@
                 <views:TripsOverviewView/>
             </DataTemplate>
 
-            <DataTemplate DataType="{x:Type vm:PackingViewModel}">
-                <views:PackingView/>
+            <!-- Вікно поїздки з вкладками -->
+            <DataTemplate DataType="{x:Type vm:TripDetailsViewModel}">
+                <views:TripDetailsView/>
             </DataTemplate>
-            
+
             <!-- Поля форми для FormWindow -->
             <DataTemplate DataType="{x:Type vm:TripFormViewModel}">
                 <forms:TripFormView/>
             </DataTemplate>
-            
+
+            <DataTemplate DataType="{x:Type vm:BudgetViewModel}">
+                <views:BudgetView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:ExpenseFormViewModel}">
+                <forms:ExpenseFormView/>
+            </DataTemplate>
+
+            <!-- Вкладка «Розклад» і форма події -->
+            <DataTemplate DataType="{x:Type vm:ItineraryViewModel}">
+                <views:ItineraryView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vm:ActivityFormViewModel}">
+                <forms:ActivityFormView/>
+            </DataTemplate>
+
+            <!-- Вкладка «Чек-лист» -->
+            <DataTemplate DataType="{x:Type vm:PackingViewModel}">
+                <views:PackingView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,27 +1,16 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Serilog;
-using TripFlow.BLL;
-using TripFlow.Services;
+using TripFlow.Models;
 
 namespace TripFlow.ViewModels;
 
-/// <summary>Оболонка вікна: тримає поточний екран і перемикає між списком поїздок та чек-листом.</summary>
+/// <summary>Оболонка вікна: тримає поточний екран і перемикає екрани.</summary>
 public partial class MainViewModel : ObservableObject
 {
-    private readonly IPackingService _packingService;
-    private readonly IDialogService _dialogs;
-    private readonly ILogger _log;
-
-    public MainViewModel(TripsOverviewViewModel overview, IPackingService packingService,
-        IDialogService dialogs, ILogger log)
+    public MainViewModel(TripsOverviewViewModel overview)
     {
         Overview = overview;
-        _packingService = packingService;
-        _dialogs = dialogs;
-        _log = log;
-
+        Overview.OpenTripRequested += OpenTrip;
         CurrentViewModel = overview;
-        overview.OpenRequested += OpenPacking;
     }
 
     public TripsOverviewViewModel Overview { get; }
@@ -29,14 +18,12 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private object? _currentViewModel;
 
-    private void OpenPacking(TripCardViewModel card)
-    {
-        var packing = new PackingViewModel(card.Id, card.Name, _packingService, _dialogs, _log, BackToOverviewAsync);
-        CurrentViewModel = packing;
-        _ = packing.LoadAsync();
-    }
+    /// <summary>Список → вікно поїздки.</summary>
+    private void OpenTrip(Trip trip) =>
+        CurrentViewModel = new TripDetailsViewModel(trip, ShowOverview);
 
-    private async Task BackToOverviewAsync()
+    /// <summary>Вікно поїздки → список (з оновленням даних).</summary>
+    private async void ShowOverview()
     {
         CurrentViewModel = Overview;
         await Overview.LoadAsync();
