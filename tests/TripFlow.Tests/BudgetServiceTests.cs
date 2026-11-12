@@ -146,4 +146,89 @@ public class BudgetServiceTests
 
         _repository.Verify(r => r.DeleteAsync(3, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    // ---------- Крайові випадки ----------
+
+    [Fact]
+    public void Summary_SpentExactlyWholeBudget_IsNotOverBudget()
+    {
+        // Витрачено рівно 100%: залишок 0, це ще не перевитрата
+        var summary = BudgetService.Calculate(15000m, new[] { new Expense { Amount = 15000m } });
+
+        Assert.Equal(0m, summary.Remaining);
+        Assert.Equal(100, summary.UsedPercent);
+        Assert.Equal(BudgetLevel.Warning, summary.Level);
+    }
+
+    [Fact]
+    public void Summary_OneCentOverBudget_IsOverBudget()
+    {
+        var summary = BudgetService.Calculate(15000m, new[] { new Expense { Amount = 15000.01m } });
+
+        Assert.Equal(-0.01m, summary.Remaining);
+        Assert.Equal(BudgetLevel.Over, summary.Level);
+    }
+
+    [Theory]
+    [InlineData(11999.99, BudgetLevel.Normal)]  // 79,99993% — ще зелений
+    [InlineData(12000.00, BudgetLevel.Warning)] // рівно 80% — вже жовтий
+    [InlineData(12000.01, BudgetLevel.Warning)]
+    public void Summary_EightyPercentThreshold(double spent, BudgetLevel expected)
+    {
+        var summary = BudgetService.Calculate(15000m, new[] { new Expense { Amount = (decimal)spent } });
+
+        Assert.Equal(expected, summary.Level);
+    }
+
+    [Fact]
+    public async Task AddExpense_SmallestAmount_IsAccepted()
+    {
+        _repository.Setup(r => r.AddAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        var expense = ValidExpense();
+        expense.Amount = 0.01m;
+
+        var result = await _service.AddExpenseAsync(_trip, expense);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(14999.99m, BudgetService.Calculate(_trip.Budget, new[] { expense }).Remaining);
+    }
+
+    [Fact]
+    public async Task AddExpense_VeryLargeAmount_IsAcceptedAndCalculatedWithoutOverflow()
+    {
+        // Найбільше значення, яке вміщує колонка DECIMAL(18,2) у таблиці Expenses
+        const decimal max = 9_999_999_999_999_999.99m;
+        _repository.Setup(r => r.AddAsync(It.IsAny<Expense>(), It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        var expense = ValidExpense();
+        expense.Amount = max;
+
+        var result = await _service.AddExpenseAsync(_trip, expense);
+        var summary = BudgetService.Calculate(_trip.Budget, new[] { expense, new Expense { Amount = max } });
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(2 * max, summary.Spent);
+        Assert.Equal(BudgetLevel.Over, summary.Level);
+    }
+
+    [Fact]
+    public async Task DeleteLastExpense_RemainingReturnsToFullBudget()
+    {
+        // «База» в пам'яті: одна витрата, яку видаляємо
+        var expenses = new List<Expense> { new() { Id = 1, Amount = 620m } };
+        _repository.Setup(r => r.GetByTripAsync(_trip.Id, It.IsAny<CancellationToken>()))
+                   .ReturnsAsync(() => expenses.ToList());
+        _repository.Setup(r => r.DeleteAsync(1, It.IsAny<CancellationToken>()))
+                   .Callback(() => expenses.RemoveAll(e => e.Id == 1))
+                   .Returns(Task.CompletedTask);
+
+        var before = await _service.GetOverviewAsync(_trip);
+        await _service.DeleteExpenseAsync(1);
+        var after = await _service.GetOverviewAsync(_trip);
+
+        Assert.Equal(14380m, before.Summary.Remaining);
+        Assert.Empty(after.Expenses);
+        Assert.Equal(0m, after.Summary.Spent);
+        Assert.Equal(_trip.Budget, after.Summary.Remaining);
+        Assert.Equal(BudgetLevel.Normal, after.Summary.Level);
+    }
 }
