@@ -48,9 +48,14 @@
                 </TextBlock>
             </Grid>
 
-            <Button Grid.Column="4" HorizontalAlignment="Right" Style="{StaticResource PrimaryButton}"
-                    Content="+ Нова подорож" Height="40" Padding="20,0"
-                    Command="{Binding CreateTripCommand}"/>
+            <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Style="{StaticResource BoldButton}" FontWeight="Normal" Content="Імпорт .json"
+                        Height="40" Padding="16,0" Margin="0,0,8,0"
+                        Command="{Binding ImportJsonCommand}"/>
+                <Button Style="{StaticResource PrimaryButton}"
+                        Content="+ Нова подорож" Height="40" Padding="20,0"
+                        Command="{Binding CreateTripCommand}"/>
+            </StackPanel>
         </Grid>
 
         <TextBlock Grid.Row="1" Style="{StaticResource ErrorText}" Margin="0,16,0,0"

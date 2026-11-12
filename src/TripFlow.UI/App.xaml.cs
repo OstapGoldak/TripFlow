@@ -97,12 +97,14 @@ public partial class App : Application
         services.AddSingleton<IPackingRepository, PackingRepository>();
         services.AddSingleton<IActivityRepository, ActivityRepository>();
         services.AddSingleton<IExpenseRepository, ExpenseRepository>();
+        services.AddSingleton<ITripImportRepository, TripImportRepository>();
 
         // BLL
         services.AddSingleton<ITripService, TripService>();
         services.AddSingleton<IPackingService, PackingService>();
         services.AddSingleton<IItineraryService, ItineraryService>();
         services.AddSingleton<IBudgetService, BudgetService>();
+        services.AddSingleton<IDataTransferService, DataTransferService>();
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();
