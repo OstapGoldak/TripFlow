@@ -16,7 +16,7 @@ public static class PackingCategories
     {
         ("Documents", "Документи"),
         ("Clothing", "Одяг"),
-        ("Electronics", "Електроніка"),
+        ("Electronics", "Техніка"),
         ("FirstAid", "Аптечка"),
         ("Other", "Інше")
     };
