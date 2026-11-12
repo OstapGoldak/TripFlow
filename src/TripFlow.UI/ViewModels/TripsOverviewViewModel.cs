@@ -65,11 +65,11 @@ public partial class TripsOverviewViewModel : ViewModelBase
 
         if (IsCompletedFilter)
         {
-            filtered = _allTrips.Where(t => t.Status == "Completed");
+            filtered = _allTrips.Where(t => t.StatusValue == TripStatus.Completed);
         }
         else if (IsPlannedFilter)
         {
-            filtered = _allTrips.Where(t => t.Status != "Completed");
+            filtered = _allTrips.Where(t => t.StatusValue != TripStatus.Completed);
         }
 
         Trips.Clear();
@@ -86,13 +86,15 @@ public partial class TripsOverviewViewModel : ViewModelBase
         try
         {
             var trips = await _tripService.GetAllAsync();
+            var today = DateOnly.FromDateTime(DateTime.Today);
 
             var cards = new List<TripCardViewModel>();
             foreach (var trip in trips)
             {
                 // Прогрес пакування на картці: скільки речей спаковано з усіх
                 var items = await _packingService.GetByTripAsync(trip.Id);
-                cards.Add(new TripCardViewModel(trip, items.Count(i => i.IsPacked), items.Count));
+                var status = _tripService.GetStatus(trip, today);
+                cards.Add(new TripCardViewModel(trip, status, items.Count(i => i.IsPacked), items.Count));
             }
 
             _allTrips = cards;
@@ -152,14 +154,17 @@ public partial class TripsOverviewViewModel : ViewModelBase
     [RelayCommand]
     private async Task CreateTripAsync()
     {
-        var form = new TripFormViewModel();
+        // Форма перевіряє дані через TripService і закривається лише тоді, коли вони коректні
+        var form = new TripFormViewModel(_tripService);
         if (!_dialogs.ShowForm(form))
         {
             return;
-        }var data = form.Result!;
+        }
+
+        var data = form.Result!;
         try
         {
-            await _tripService.AddAsync(new Trip
+            var result = await _tripService.AddAsync(new Trip
             {
                 Name = data.Name,
                 Destination = data.Destination,
@@ -167,6 +172,13 @@ public partial class TripsOverviewViewModel : ViewModelBase
                 EndDate = data.EndDate,
                 Budget = data.Budget
             });
+
+            if (!result.IsSuccess)
+            {
+                ErrorMessage = result.ErrorMessage;
+                return;
+            }
+
             _log.Information("Поїздку створено: {Name}", data.Name);
             await LoadAsync();
         }

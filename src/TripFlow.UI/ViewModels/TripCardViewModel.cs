@@ -2,21 +2,21 @@ using TripFlow.Models;
 
 namespace TripFlow.ViewModels;
 
-/// <summary>Картка поїздки у списку (лише відображення).</summary>
+/// <summary>Картка поїздки у списку (лише відображення). Статус обчислює TripService.</summary>
 public sealed class TripCardViewModel
 {
-    public TripCardViewModel(Trip trip, int packedCount = 0, int totalCount = 0)
+    public TripCardViewModel(Trip trip, TripStatus status, int packedCount = 0, int totalCount = 0)
     {
-        var today = DateOnly.FromDateTime(DateTime.Today);
-
         Trip = trip;
         Id = trip.Id;
         Name = trip.Name;
-        Status = today < trip.StartDate ? "Planned" : today > trip.EndDate ? "Completed" : "InProgress";
-        StatusText = Status switch
+
+        StatusValue = status;
+        Status = status.ToString();
+        StatusText = status switch
         {
-            "Completed" => "ЗАВЕРШЕНО",
-            "InProgress" => "У ПРОЦЕСІ",
+            TripStatus.Completed => "ЗАВЕРШЕНО",
+            TripStatus.InProgress => "У ПРОЦЕСІ",
             _ => "ЗАПЛАНОВАНО"
         };
         DatesText = $"{trip.StartDate:dd.MM.yyyy} – {trip.EndDate:dd.MM.yyyy}";
@@ -33,7 +33,10 @@ public sealed class TripCardViewModel
     public int Id { get; }
     public string Name { get; }
 
-    /// <summary>"Planned", "InProgress" або "Completed" (використовується стилем бейджа).</summary>
+    /// <summary>Статус для логіки (фільтр).</summary>
+    public TripStatus StatusValue { get; }
+
+    /// <summary>"Planned", "InProgress" або "Completed": за цим рядком стиль бейджа обирає колір (Styles.xaml).</summary>
     public string Status { get; }
     public string StatusText { get; }
     public string DatesText { get; }
