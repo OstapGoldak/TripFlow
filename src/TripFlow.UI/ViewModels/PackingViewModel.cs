@@ -37,7 +37,7 @@ public partial class PackingViewModel : ViewModelBase
 
     public int TotalCount => Items.Count;
     public int PackedCount => Items.Count(i => i.IsPacked);
-    public double ProgressPercent => TotalCount == 0 ? 0 : (double)PackedCount / TotalCount * 100;
+    public double ProgressPercent => PackingService.CalculateProgress(PackedCount, TotalCount).Percent;
     public string ProgressText => $"Спаковано {PackedCount} з {TotalCount}";
     public bool IsEmpty => Items.Count == 0;
 

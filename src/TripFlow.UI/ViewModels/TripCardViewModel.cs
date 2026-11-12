@@ -1,5 +1,5 @@
 using TripFlow.Models;
-
+using TripFlow.BLL;
 namespace TripFlow.ViewModels;
 
 /// <summary>Картка поїздки у списку (лише відображення).</summary>
@@ -22,7 +22,8 @@ public sealed class TripCardViewModel
         DatesText = $"{trip.StartDate:dd.MM.yyyy} – {trip.EndDate:dd.MM.yyyy}";
 
         // Пакування рахується з чек-листа; витрати з'являться разом з бюджетом
-        PackingPercent = totalCount == 0 ? 0 : (double)packedCount / totalCount * 100;
+        
+        PackingPercent = PackingService.CalculateProgress(packedCount, totalCount).Percent;
         PackingText = totalCount == 0 ? "0%" : $"{packedCount} з {totalCount} ({PackingPercent:0}%)";
         BudgetText = $"0 ₴ / {trip.Budget:N0} ₴";
     }

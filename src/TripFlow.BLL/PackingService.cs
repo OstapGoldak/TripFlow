@@ -44,4 +44,14 @@ public class PackingService : IPackingService
 
     public Task DeleteAsync(int id, CancellationToken ct = default) =>
         _repository.DeleteAsync(id, ct);
+
+        /// <summary>Прогрес за кількістю: використовують вкладка й картка поїздки.</summary>
+public static PackingProgress CalculateProgress(int packed, int total) => new(packed, total);
+
+/// <summary>Прогрес за списком речей.</summary>
+public static PackingProgress CalculateProgress(IEnumerable<PackingItem> items)
+{
+    var list = items.ToList();
+    return CalculateProgress(list.Count(i => i.IsPacked), list.Count);
+}
 }
