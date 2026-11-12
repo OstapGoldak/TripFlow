@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using TripFlow.BLL;
@@ -16,17 +17,22 @@ public partial class TripsOverviewViewModel : ViewModelBase
 {
     private readonly ITripService _tripService;
     private readonly IPackingService _packingService;
+    private readonly IDataTransferService _transfer;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
+
+    /// <summary>Файл імпорту більший за це значення вважаємо помилковим (звичайна поїздка займає кілька КБ).</summary>
+    private const long MaxImportFileBytes = 5 * 1024 * 1024;
 
     /// <summary>Усі поїздки з бази (без фільтра).</summary>
     private List<TripCardViewModel> _allTrips = new();
 
     public TripsOverviewViewModel(ITripService tripService, IPackingService packingService,
-        IDialogService dialogs, ILogger log)
+        IDataTransferService transfer, IDialogService dialogs, ILogger log)
     {
         _tripService = tripService;
         _packingService = packingService;
+        _transfer = transfer;
         _dialogs = dialogs;
         _log = log;
     }
@@ -100,8 +106,48 @@ public partial class TripsOverviewViewModel : ViewModelBase
         }
     }
 
+
     [RelayCommand]
     private void OpenTrip(TripCardViewModel card) => OpenTripRequested?.Invoke(card.Trip);
+
+    /// <summary>Імпорт поїздки з файлу .json: створює нову поїздку з розкладом, витратами й чек-листом.</summary>
+    [RelayCommand]
+    private async Task ImportJsonAsync()
+    {
+        var path = _dialogs.PickOpenFile("JSON (*.json)|*.json");
+        if (path is null)
+        {
+            return; // користувач скасував вибір файлу
+        }
+
+        try
+        {
+            if (new FileInfo(path).Length > MaxImportFileBytes)
+            {
+                ErrorMessage = "Файл завеликий для імпорту поїздки.";
+                return;
+            }
+
+            var json = await File.ReadAllTextAsync(path);
+            var result = await _transfer.ImportAsync(json);
+            if (!result.IsSuccess)
+            {
+                _log.Warning("Імпорт файлу {Path} відхилено: {Reason}", path, result.ErrorMessage);
+                ErrorMessage = "Імпорт не виконано. " + result.ErrorMessage;
+                return;
+            }
+
+            _log.Information("Поїздку імпортовано з файлу {Path}, новий Id {TripId}", path, result.Value);
+            await LoadAsync();
+            _dialogs.ShowInfo("Поїздку імпортовано.");
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Не вдалося імпортувати поїздку з файлу {Path}", path);
+            ErrorMessage = "Не вдалося імпортувати файл: " + ex.Message;
+        }
+    }
+
 
     [RelayCommand]
     private async Task CreateTripAsync()
