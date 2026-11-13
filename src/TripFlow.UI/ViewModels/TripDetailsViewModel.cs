@@ -17,16 +17,18 @@ public partial class TripDetailsViewModel : ViewModelBase
 {
     private readonly Action _goBack;
     private readonly IDataTransferService _transfer;
+    private readonly IReportService _report;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
 
     public TripDetailsViewModel(Trip trip, Action goBack,
         BudgetViewModel budget, ItineraryViewModel itinerary, PackingViewModel packing,
-        IDataTransferService transfer, IDialogService dialogs, ILogger log)
+        IDataTransferService transfer, IReportService report, IDialogService dialogs, ILogger log)
     {
         Trip = trip;
         _goBack = goBack;
         _transfer = transfer;
+        _report = report;
         _dialogs = dialogs;
         _log = log;
 
@@ -90,6 +92,38 @@ public partial class TripDetailsViewModel : ViewModelBase
         {
             _log.Error(ex, "Не вдалося експортувати поїздку {TripId}", Trip.Id);
             _dialogs.ShowError("Не вдалося експортувати поїздку: " + ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// PDF-звіт поїздки (розклад, бюджет, чек-лист) через принтер Windows «Microsoft Print to PDF».
+    /// Куди зберегти файл, Windows запитує у власному вікні.
+    /// </summary>
+    [RelayCommand]
+    private async Task ExportPdfAsync()
+    {
+        try
+        {
+            var report = await _report.BuildAsync(Trip);
+            if (!PdfReportWriter.Write(report))
+            {
+                _dialogs.ShowError("Не знайдено принтер «Microsoft Print to PDF». Увімкніть його: " +
+                                   "Панель керування → Програми → Увімкнення або вимкнення компонентів Windows → " +
+                                   "«Microsoft Print to PDF».");
+                return;
+            }
+
+            _log.Information("PDF-звіт поїздки {TripId} надіслано на принтер PDF", Trip.Id);
+        }
+        catch (Exception ex) when (ex.GetType().Name == "PrintingCanceledException")
+        {
+            // Користувач закрив вікно збереження PDF: це не помилка
+            _log.Information("Збереження PDF-звіту поїздки {TripId} скасовано", Trip.Id);
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Не вдалося створити PDF-звіт поїздки {TripId}", Trip.Id);
+            _dialogs.ShowError("Не вдалося створити PDF-звіт: " + ex.Message);
         }
     }
 
