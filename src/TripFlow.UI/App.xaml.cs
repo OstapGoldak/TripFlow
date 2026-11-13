@@ -105,6 +105,7 @@ public partial class App : Application
         services.AddSingleton<IItineraryService, ItineraryService>();
         services.AddSingleton<IBudgetService, BudgetService>();
         services.AddSingleton<IDataTransferService, DataTransferService>();
+        services.AddSingleton<IReportService, ReportService>();
 
         // UI
         services.AddSingleton<IDialogService, DialogService>();

@@ -13,6 +13,7 @@ public partial class MainViewModel : ObservableObject
     private readonly Func<ItineraryViewModel> _createItinerary;
     private readonly Func<PackingViewModel> _createPacking;
     private readonly IDataTransferService _transfer;
+    private readonly IReportService _report;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
 
@@ -21,6 +22,7 @@ public partial class MainViewModel : ObservableObject
         Func<ItineraryViewModel> createItinerary,
         Func<PackingViewModel> createPacking,
         IDataTransferService transfer,
+        IReportService report,
         IDialogService dialogs,
         ILogger log)
     {
@@ -29,6 +31,7 @@ public partial class MainViewModel : ObservableObject
         _createItinerary = createItinerary;
         _createPacking = createPacking;
         _transfer = transfer;
+        _report = report;
         _dialogs = dialogs;
         _log = log;
         Overview.OpenTripRequested += OpenTrip;
@@ -44,7 +47,7 @@ public partial class MainViewModel : ObservableObject
     private void OpenTrip(Trip trip) =>
         CurrentViewModel = new TripDetailsViewModel(trip, ShowOverview,
             _createBudget(), _createItinerary(), _createPacking(),
-            _transfer, _dialogs, _log);
+            _transfer, _report, _dialogs, _log);
 
     /// <summary>Вікно поїздки → список (з оновленням даних).</summary>
     private async void ShowOverview()
