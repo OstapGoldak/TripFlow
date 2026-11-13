@@ -21,13 +21,15 @@
         </Style>
     </UserControl.Resources>
 
+    <!-- Уся вкладка прокручується: картки, ліміт і таблиця витрат рухаються разом -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <Grid Margin="40,28,40,40">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Три картки: заплановано, витрачено, залишок -->
@@ -93,7 +95,7 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Grid Margin="24,0" Height="50">
@@ -111,7 +113,7 @@
                     <TextBlock Grid.Column="4" Text="Дія" FontWeight="Bold" VerticalAlignment="Center" Foreground="{StaticResource FaintBrush}"/>
                 </Grid>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <Grid Grid.Row="1">
                     <Grid>
                         <ItemsControl ItemsSource="{Binding Expenses}">
                             <ItemsControl.ItemTemplate>
@@ -151,8 +153,9 @@
                                    VerticalAlignment="Top"
                                    Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVis}}"/>
                     </Grid>
-                </ScrollViewer>
+                </Grid>
             </Grid>
         </Border>
     </Grid>
+    </ScrollViewer>
 </UserControl>
