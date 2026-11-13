@@ -11,7 +11,7 @@ namespace TripFlow.ViewModels;
 
 /// <summary>
 /// Головний екран: список поїздок із бази (UI → BLL → DAL → LocalDB),
-/// фільтр за статусом, прогрес пакування на картках, створення, відкриття та видалення.
+/// фільтр за статусом, прогрес пакування на картках, створення, відкриття, редагування та видалення.
 /// </summary>
 public partial class TripsOverviewViewModel : ViewModelBase
 {
@@ -186,6 +186,48 @@ public partial class TripsOverviewViewModel : ViewModelBase
         {
             _log.Error(ex, "Не вдалося зберегти поїздку {Name}", data.Name);
             ErrorMessage = "Не вдалося зберегти поїздку: " + ex.Message;
+        }
+    }
+
+    /// <summary>Олівець на картці: форма з даними поїздки, після збереження список оновлюється.</summary>
+    [RelayCommand]
+    private async Task EditTripAsync(TripCardViewModel card)
+    {
+        try
+        {
+            // Дні з подіями потрібні формі, щоб одразу показати помилку й не закриватися
+            var scheduleRange = await _tripService.GetScheduleRangeAsync(card.Id);
+
+            var form = new TripFormViewModel(_tripService, card.Trip, scheduleRange);
+            if (!_dialogs.ShowForm(form))
+            {
+                return;
+            }
+
+            var data = form.Result!;
+            var result = await _tripService.UpdateAsync(new Trip
+            {
+                Id = card.Id,
+                Name = data.Name,
+                Destination = data.Destination,
+                StartDate = data.StartDate,
+                EndDate = data.EndDate,
+                Budget = data.Budget
+            });
+
+            if (!result.IsSuccess)
+            {
+                ErrorMessage = result.ErrorMessage;
+                return;
+            }
+
+            _log.Information("Поїздку {TripId} змінено", card.Id);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            _log.Error(ex, "Не вдалося змінити поїздку {TripId}", card.Id);
+            ErrorMessage = "Не вдалося змінити поїздку: " + ex.Message;
         }
     }
 

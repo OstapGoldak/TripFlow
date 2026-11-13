@@ -1,3 +1,4 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using TripFlow.BLL;
 using TripFlow.Models;
@@ -8,21 +9,39 @@ namespace TripFlow.ViewModels;
 public sealed record TripFormData(string Name, string Destination, DateOnly StartDate, DateOnly EndDate, decimal Budget);
 
 /// <summary>
-/// Сценарій 1: створення нової подорожі.
+/// Сценарій 1: створення нової подорожі, а також редагування наявної.
 /// Форма перевіряє лише формат введення (обрано дати, бюджет є числом).
-/// Бізнес-правила (порожні поля, порядок дат, від'ємний бюджет) перевіряє TripService:
+/// Бізнес-правила (порожні поля, порядок дат, від'ємний бюджет, дні з подіями) перевіряє TripService:
 /// форма питає сервіс і лишається відкритою з його повідомленням (альтернативний потік 5a).
 /// </summary>
 public partial class TripFormViewModel : FormViewModelBase
 {
     private readonly ITripService _tripService;
+    private readonly bool _isEdit;
 
+    /// <summary>Дні з подіями розкладу (лише під час редагування): нові дати мають їх охоплювати.</summary>
+    private readonly (DateOnly First, DateOnly Last)? _scheduleRange;
+
+    /// <summary>Нова подорож.</summary>
     public TripFormViewModel(ITripService tripService)
     {
         _tripService = tripService;
     }
 
-    public override string Title => "Нова подорож";
+    /// <summary>Редагування наявної подорожі: поля заповнюються її даними.</summary>
+    public TripFormViewModel(ITripService tripService, Trip trip, (DateOnly First, DateOnly Last)? scheduleRange)
+        : this(tripService)
+    {
+        _isEdit = true;
+        _scheduleRange = scheduleRange;
+        _name = trip.Name;
+        _destination = trip.Destination;
+        _startDate = trip.StartDate.ToDateTime(TimeOnly.MinValue);
+        _endDate = trip.EndDate.ToDateTime(TimeOnly.MinValue);
+        _budgetText = trip.Budget.ToString("0.##", CultureInfo.CurrentCulture);
+    }
+
+    public override string Title => _isEdit ? "Редагування подорожі" : "Нова подорож";
 
     /// <summary>Заповнюється після успішної перевірки.</summary>
     public TripFormData? Result { get; private set; }
@@ -63,7 +82,7 @@ public partial class TripFormViewModel : FormViewModelBase
             StartDate = data.StartDate,
             EndDate = data.EndDate,
             Budget = data.Budget
-        });
+        }, _scheduleRange);
 
         if (!check.IsSuccess)
         {

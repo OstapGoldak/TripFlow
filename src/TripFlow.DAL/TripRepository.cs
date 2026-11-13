@@ -66,6 +66,31 @@ public class TripRepository : ITripRepository
         return Convert.ToInt32(newId);
     }
 
+    public async Task UpdateAsync(Trip trip, CancellationToken ct = default)
+    {
+        const string sql = @"UPDATE dbo.Trips
+                             SET Name = @Name, Destination = @Destination,
+                                 StartDate = @StartDate, EndDate = @EndDate, Budget = @Budget
+                             WHERE Id = @Id;";
+
+        await using var connection = await _factory.CreateOpenConnectionAsync(ct);
+        await using var command = new SqlCommand(sql, connection);
+
+        command.Parameters.Add("@Id", SqlDbType.Int).Value = trip.Id;
+        command.Parameters.Add("@Name", SqlDbType.NVarChar, 255).Value = trip.Name;
+        command.Parameters.Add("@Destination", SqlDbType.NVarChar, 255).Value = trip.Destination;
+        command.Parameters.Add("@StartDate", SqlDbType.Date).Value = trip.StartDate.ToDateTime(TimeOnly.MinValue);
+        command.Parameters.Add("@EndDate", SqlDbType.Date).Value = trip.EndDate.ToDateTime(TimeOnly.MinValue);
+        command.Parameters.Add(new SqlParameter("@Budget", SqlDbType.Decimal)
+        {
+            Precision = 18,
+            Scale = 2,
+            Value = trip.Budget
+        });
+
+        await command.ExecuteNonQueryAsync(ct);
+    }
+
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
         const string sql = "DELETE FROM dbo.Trips WHERE Id = @Id;";

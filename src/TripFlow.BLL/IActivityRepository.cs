@@ -20,7 +20,8 @@ public interface IActivityRepository
     Task DeleteAsync(int id, CancellationToken ct = default);
 
     /// <summary>
-
+    /// Найраніша й найпізніша дата подій поїздки або null, якщо подій немає.
+    /// Потрібна, щоб під час редагування дат поїздки події не опинилися поза нею.
     /// </summary>
     Task<(DateOnly First, DateOnly Last)?> GetDateRangeAsync(int tripId, CancellationToken ct = default);
 }

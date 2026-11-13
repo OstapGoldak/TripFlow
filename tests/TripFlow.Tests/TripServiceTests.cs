@@ -5,17 +5,18 @@ using TripFlow.Models;
 namespace TripFlow.Tests;
 
 /// <summary>
-/// Модульні тести TripService: валідація поїздки та статус за датами.
+/// Модульні тести TripService: валідація поїздки, редагування та статус за датами.
 /// Репозиторій замінено заглушкою (Moq), тому база даних не потрібна.
 /// </summary>
 public class TripServiceTests
 {
     private readonly Mock<ITripRepository> _repository = new();
+    private readonly Mock<IActivityRepository> _activities = new();
     private readonly TripService _service;
 
     public TripServiceTests()
     {
-        _service = new TripService(_repository.Object);
+        _service = new TripService(_repository.Object, _activities.Object);
     }
 
     // Поїздка: 1–5 грудня 2026
@@ -160,6 +161,100 @@ public class TripServiceTests
     public async Task AddAsync_NullTrip_Throws()
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() => _service.AddAsync(null!));
+    }
+
+    // ---------- Редагування ----------
+
+    private static Trip SavedTrip()
+    {
+        var trip = ValidTrip();
+        trip.Id = 7;
+        return trip;
+    }
+
+    /// <summary>У поїздки є події з <paramref name="first"/> по <paramref name="last"/> грудня 2026.</summary>
+    private void SetupSchedule(int first, int last) =>
+        _activities.Setup(a => a.GetDateRangeAsync(7, It.IsAny<CancellationToken>()))
+                   .ReturnsAsync((new DateOnly(2026, 12, first), new DateOnly(2026, 12, last)));
+
+    private void VerifyNothingUpdated() =>
+        _repository.Verify(r => r.UpdateAsync(It.IsAny<Trip>(), It.IsAny<CancellationToken>()), Times.Never);
+
+    [Fact]
+    public async Task UpdateAsync_ValidTrip_SavesTrimmedTrip()
+    {
+        var trip = SavedTrip();
+        trip.Name = "  Карпати взимку  ";
+        trip.Budget = 8000m;
+
+        var result = await _service.UpdateAsync(trip);
+
+        Assert.True(result.IsSuccess);
+        _repository.Verify(r => r.UpdateAsync(
+            It.Is<Trip>(t => t.Id == 7 && t.Name == "Карпати взимку" && t.Budget == 8000m),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_InvalidTrip_ReturnsFailureAndDoesNotSave()
+    {
+        var trip = SavedTrip();
+        trip.Name = "   ";
+
+        var result = await _service.UpdateAsync(trip);
+
+        Assert.False(result.IsSuccess);
+        VerifyNothingUpdated();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_NoActivities_AllowsAnyValidDates()
+    {
+        // Подій немає: репозиторій повертає null, дати можна міняти як завгодно
+        var trip = SavedTrip();
+        trip.StartDate = new DateOnly(2027, 3, 10);
+        trip.EndDate = new DateOnly(2027, 3, 12);
+
+        var result = await _service.UpdateAsync(trip);
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_NewDatesExactlyCoverActivities_IsAllowed()
+    {
+        // Події 2–4 грудня, поїздку скорочено рівно до цих днів
+        SetupSchedule(2, 4);
+        var trip = SavedTrip();
+        trip.StartDate = new DateOnly(2026, 12, 2);
+        trip.EndDate = new DateOnly(2026, 12, 4);
+
+        var result = await _service.UpdateAsync(trip);
+
+        Assert.True(result.IsSuccess);
+    }
+
+    [Theory]
+    [InlineData(3, 5)] // перший день з подією (2 грудня) лишився б до початку поїздки
+    [InlineData(1, 3)] // останній день з подією (4 грудня) лишився б після завершення
+    public async Task UpdateAsync_ActivitiesOutsideNewDates_ReturnsFailureAndDoesNotSave(int startDay, int endDay)
+    {
+        SetupSchedule(2, 4);
+        var trip = SavedTrip();
+        trip.StartDate = new DateOnly(2026, 12, startDay);
+        trip.EndDate = new DateOnly(2026, 12, endDay);
+
+        var result = await _service.UpdateAsync(trip);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("02.12.2026", result.ErrorMessage);
+        VerifyNothingUpdated();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_TripWithoutId_Throws()
+    {
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => _service.UpdateAsync(ValidTrip()));
     }
 
     // ---------- Статус за датами (поїздка 1–5 грудня 2026) ----------
