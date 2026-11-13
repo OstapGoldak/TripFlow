@@ -2,10 +2,14 @@ using TripFlow.Models;
 using TripFlow.BLL;
 namespace TripFlow.ViewModels;
 
-/// <summary>Картка поїздки у списку (лише відображення). Статус обчислює TripService.</summary>
+/// <summary>
+/// Картка поїздки у списку (лише відображення).
+/// Статус обчислює TripService, прогрес зборів — PackingService, витрачену суму — BudgetService.
+/// </summary>
 public sealed class TripCardViewModel
 {
-    public TripCardViewModel(Trip trip, TripStatus status, int packedCount = 0, int totalCount = 0)
+    public TripCardViewModel(Trip trip, TripStatus status, int packedCount = 0, int totalCount = 0,
+        BudgetSummary? budget = null)
     {
         Trip = trip;
         Id = trip.Id;
@@ -21,11 +25,15 @@ public sealed class TripCardViewModel
         };
         DatesText = $"{trip.StartDate:dd.MM.yyyy} – {trip.EndDate:dd.MM.yyyy}";
 
-        // Пакування рахується з чек-листа; витрати з'являться разом з бюджетом
-        
+        // Пакування рахується з чек-листа
         PackingPercent = PackingService.CalculateProgress(packedCount, totalCount).Percent;
         PackingText = totalCount == 0 ? "0%" : $"{packedCount} з {totalCount} ({PackingPercent:0}%)";
-        BudgetText = $"0 ₴ / {trip.Budget:N0} ₴";
+
+        // Бюджет: витрачено / заплановано; без даних про витрати вважаємо, що витрат немає
+        var summary = budget ?? new BudgetSummary(trip.Budget, 0m);
+        // Копійки показуємо лише тоді, коли вони є: 10 000 ₴, але 20 000,01 ₴
+        BudgetText = $"{summary.Spent:#,0.##} ₴ / {summary.Planned:#,0.##} ₴";
+        IsOverBudget = summary.Level == BudgetLevel.Over;
     }
 
     /// <summary>Поїздка, яку відкриває кнопка «Відкрити».</summary>
@@ -44,5 +52,7 @@ public sealed class TripCardViewModel
     public double PackingPercent { get; }
     public string PackingText { get; }
     public string BudgetText { get; }
-    public bool IsOverBudget => false;
+
+    /// <summary>Перевитрата: сума бюджету на картці стає червоною.</summary>
+    public bool IsOverBudget { get; }
 }
