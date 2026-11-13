@@ -91,6 +91,34 @@ public class RepositoryIntegrationTests
     }
 
     [Fact]
+    public async Task Trip_Update_ChangesAllFieldsOfThatTripOnly()
+    {
+        var id = await AddTripAsync("Карпати");
+        var otherId = await AddTripAsync("Інша поїздка");
+
+        await _trips.UpdateAsync(new Trip
+        {
+            Id = id,
+            Name = "Карпати взимку",
+            Destination = "Яремче",
+            StartDate = new DateOnly(2027, 1, 10),
+            EndDate = new DateOnly(2027, 1, 15),
+            Budget = 9999.99m
+        });
+
+        var all = await _trips.GetAllAsync();
+        var trip = all.Single(t => t.Id == id);
+        Assert.Equal("Карпати взимку", trip.Name);
+        Assert.Equal("Яремче", trip.Destination);
+        Assert.Equal(new DateOnly(2027, 1, 10), trip.StartDate);
+        Assert.Equal(new DateOnly(2027, 1, 15), trip.EndDate);
+        Assert.Equal(9999.99m, trip.Budget);
+
+        // WHERE Id = @Id: інша поїздка не змінилася
+        Assert.Equal("Інша поїздка", all.Single(t => t.Id == otherId).Name);
+    }
+
+    [Fact]
     public async Task Trip_NameWithSqlCharacters_IsStoredAsPlainText()
     {
         // Параметризовані запити: текст не виконується як SQL

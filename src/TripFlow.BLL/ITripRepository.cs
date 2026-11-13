@@ -13,5 +13,8 @@ public interface ITripRepository
     /// <summary>Додає поїздку й повертає її новий Id.</summary>
     Task<int> AddAsync(Trip trip, CancellationToken ct = default);
 
+    /// <summary>Оновлює назву, розташування, дати й бюджет поїздки з указаним Id.</summary>
+    Task UpdateAsync(Trip trip, CancellationToken ct = default);
+
     Task DeleteAsync(int id, CancellationToken ct = default);
 }

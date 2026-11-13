@@ -128,11 +128,18 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Button Style="{StaticResource BoldButton}" Content="Відкрити" Height="42"
                                                 Command="{Binding DataContext.OpenTripCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}"/>
-                                        <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE74D;"
+                                        <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE70F;"
+                                                ToolTip="Редагувати подорож"
+                                                Width="38" Height="38" VerticalAlignment="Top"
+                                                Command="{Binding DataContext.EditTripCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                        <Button Grid.Column="4" Style="{StaticResource IconButton}" Content="&#xE74D;"
                                                 ToolTip="Видалити подорож"
                                                 Width="38" Height="38" VerticalAlignment="Top"
                                                 Command="{Binding DataContext.DeleteTripCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
