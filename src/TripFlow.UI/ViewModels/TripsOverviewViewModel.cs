@@ -17,6 +17,7 @@ public partial class TripsOverviewViewModel : ViewModelBase
 {
     private readonly ITripService _tripService;
     private readonly IPackingService _packingService;
+    private readonly IBudgetService _budgetService;
     private readonly IDataTransferService _transfer;
     private readonly IDialogService _dialogs;
     private readonly ILogger _log;
@@ -28,10 +29,11 @@ public partial class TripsOverviewViewModel : ViewModelBase
     private List<TripCardViewModel> _allTrips = new();
 
     public TripsOverviewViewModel(ITripService tripService, IPackingService packingService,
-        IDataTransferService transfer, IDialogService dialogs, ILogger log)
+        IBudgetService budgetService, IDataTransferService transfer, IDialogService dialogs, ILogger log)
     {
         _tripService = tripService;
         _packingService = packingService;
+        _budgetService = budgetService;
         _transfer = transfer;
         _dialogs = dialogs;
         _log = log;
@@ -94,7 +96,12 @@ public partial class TripsOverviewViewModel : ViewModelBase
                 // Прогрес пакування на картці: скільки речей спаковано з усіх
                 var items = await _packingService.GetByTripAsync(trip.Id);
                 var status = _tripService.GetStatus(trip, today);
-                cards.Add(new TripCardViewModel(trip, status, items.Count(i => i.IsPacked), items.Count));
+
+                // Бюджет на картці: та сама сума, що й на вкладці «Бюджет»
+                var budget = await _budgetService.GetOverviewAsync(trip);
+
+                cards.Add(new TripCardViewModel(trip, status, items.Count(i => i.IsPacked), items.Count,
+                    budget.Summary));
             }
 
             _allTrips = cards;
