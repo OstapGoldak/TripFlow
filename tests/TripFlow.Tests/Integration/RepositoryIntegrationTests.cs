@@ -137,7 +137,10 @@ public class RepositoryIntegrationTests
         await AddActivityAsync(tripId, 1, 10, 0, "Екскурсія");
         await _expenses.AddAsync(new Expense
         {
-            TripId = tripId, Date = new DateOnly(2026, 12, 1), Amount = 300m, Category = ExpenseCategory.Food
+            TripId = tripId,
+            Date = new DateOnly(2026, 12, 1),
+            Amount = 300m,
+            Category = ExpenseCategory.Food
         });
         await _packing.AddAsync(new PackingItem { TripId = tripId, Name = "Паспорт", Category = "Documents" });
 
@@ -230,7 +233,10 @@ public class RepositoryIntegrationTests
 
         await Assert.ThrowsAsync<SqlException>(() => _expenses.AddAsync(new Expense
         {
-            TripId = tripId, Date = new DateOnly(2026, 12, 1), Amount = 0m, Category = ExpenseCategory.Food
+            TripId = tripId,
+            Date = new DateOnly(2026, 12, 1),
+            Amount = 0m,
+            Category = ExpenseCategory.Food
         }));
         Assert.Equal(0, await CountAsync("Expenses", tripId));
     }
