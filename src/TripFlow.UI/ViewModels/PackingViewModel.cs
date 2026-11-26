@@ -109,17 +109,17 @@ public partial class PackingViewModel : ViewModelBase
         try
         {
             var result = await _service.AddAsync(new PackingItem
-{
-    TripId = _tripId,
-    Name = name,
-    Category = category
-});
+            {
+                TripId = _tripId,
+                Name = name,
+                Category = category
+            });
 
-if (!result.IsSuccess)
-{
-    ErrorMessage = result.ErrorMessage;
-    return;
-}
+            if (!result.IsSuccess)
+            {
+                ErrorMessage = result.ErrorMessage;
+                return;
+            }
 
             _log.Information("Додано річ «{Name}» до поїздки {TripId}", name, _tripId);
             NewItemName = string.Empty;

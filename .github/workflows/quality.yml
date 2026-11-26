@@ -1,0 +1,80 @@
+# Перевірки якості TripFlow: форматування коду, покриття тестами, вразливі пакети.
+# Окремий workflow, щоб не змішувати з основним CI (ci.yml).
+name: Quality
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Code quality checks
+    runs-on: windows-latest
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore TripFlow.sln
+
+      # Відступи, пробіли, перенесення рядків за правилами .NET. Падає, якщо код не відформатовано
+      - name: Check formatting
+        run: dotnet format whitespace TripFlow.sln --verify-no-changes --no-restore
+
+      # Покриття коду модульними тестами (coverlet уже підключений у тестовому проєкті)
+      - name: Unit tests with coverage
+        run: >
+          dotnet test TripFlow.sln
+          --configuration Release
+          --no-restore
+          --filter "Category!=Integration"
+          --collect:"XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Build coverage report
+        shell: pwsh
+        run: |
+          dotnet tool install --global dotnet-reportgenerator-globaltool
+          reportgenerator `
+            -reports:"TestResults/**/coverage.cobertura.xml" `
+            -targetdir:"CoverageReport" `
+            -reporttypes:"Html;MarkdownSummaryGithub"
+          Get-Content CoverageReport/SummaryGithub.md | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: CoverageReport
+
+      # Звіт про NuGet-пакети з відомими вразливостями (включно з транзитивними).
+      # Поки лише попереджає: виправлення вразливостей — задача етапу 9 (безпека)
+      - name: Check vulnerable packages
+        shell: pwsh
+        run: |
+          $report = dotnet list TripFlow.sln package --vulnerable --include-transitive 2>&1 | Out-String
+          Write-Output $report
+          if ($report -match 'has the following vulnerable packages') {
+            Write-Output "::warning title=Vulnerable packages::Знайдено пакети з відомими вразливостями. Деталі в логах цього кроку."
+            "### Вразливі пакети`n``````n$report`n``````" | Add-Content $env:GITHUB_STEP_SUMMARY
+          } else {
+            "### Вразливі пакети`nНе знайдено." | Add-Content $env:GITHUB_STEP_SUMMARY
+          }
