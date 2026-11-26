@@ -1,5 +1,8 @@
 # TripFlow — Desktop Travel Organizer
 
+[![CI](https://github.com/OstapGoldak/TripFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/OstapGoldak/TripFlow/actions/workflows/ci.yml)
+[![Quality](https://github.com/OstapGoldak/TripFlow/actions/workflows/quality.yml/badge.svg)](https://github.com/OstapGoldak/TripFlow/actions/workflows/quality.yml)
+
 Десктопний застосунок на базі WPF та .NET для планування подорожей, структурування розкладу по днях, ведення бюджету витрат та організації чек-листів спорядження.
 
 # Мета проекту
@@ -36,3 +39,17 @@
 ### Конкурентні переваги TripFlow
 * **Локальне збереження даних:** надійна десктопна база даних працює без інтернету, відсутній ризик втратити доступ до планів у роумінгу.
 * **Універсальність:** поєднує в єдиному вікні погодинний розклад, чек-лист речей та жорсткий контроль бюджету без платних підписок чи лімітів на кількість записів.
+
+# Збірка та тести
+
+**Потрібно:** Windows, [.NET 10 SDK](https://dotnet.microsoft.com/download), SQL Server LocalDB (входить до Visual Studio або встановлюється окремо).
+
+```powershell
+dotnet build TripFlow.sln                              # збирання
+dotnet run --project src/TripFlow.UI                   # запуск застосунку
+dotnet test                                            # усі тести
+dotnet test --filter "Category!=Integration"           # лише модульні (без бази)
+dotnet test --filter "Category=Integration"            # лише інтеграційні (LocalDB)
+```
+
+Ті самі збирання й тести автоматично виконуються в GitHub Actions на кожен pull request. Детальніше: [Documents/CI.md](Documents/CI.md), підхід до тестування: [Documents/TESTING.md](Documents/TESTING.md).
