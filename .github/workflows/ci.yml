@@ -55,3 +55,65 @@ jobs:
         with:
           name: unit-test-results
           path: TestResults/*.trx
+
+  integration-tests:
+    name: Integration tests (LocalDB)
+    runs-on: windows-latest
+    # Інтеграційні тести запускаємо лише після успішного збирання й модульних тестів
+    needs: build-and-test
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      # Тести створюють тимчасову базу на (localdb)\MSSQLLocalDB (див. LocalDbFixture).
+      # Якщо на машині GitHub LocalDB немає, встановлюємо його через Chocolatey
+      - name: Start SQL Server LocalDB
+        shell: pwsh
+        run: |
+          function Find-LocalDb {
+            $cmd = Get-Command sqllocaldb -ErrorAction SilentlyContinue
+            if ($cmd) { return $cmd.Source }
+            Get-ChildItem 'C:\Program Files\Microsoft SQL Server' -Recurse -Filter SqlLocalDB.exe -ErrorAction SilentlyContinue |
+              Select-Object -First 1 -ExpandProperty FullName
+          }
+
+          $exe = Find-LocalDb
+          if (-not $exe) {
+            Write-Output "LocalDB не знайдено, встановлюємо"
+            choco install sqllocaldb -y --no-progress
+            $exe = Find-LocalDb
+          }
+          if (-not $exe) { throw "Не вдалося встановити SQL Server LocalDB" }
+
+          & $exe info
+          & $exe start MSSQLLocalDB
+          & $exe info MSSQLLocalDB
+
+      - name: Restore
+        run: dotnet restore TripFlow.sln
+
+      - name: Integration tests
+        run: >
+          dotnet test tests/TripFlow.Tests/TripFlow.Tests.csproj
+          --configuration Release
+          --no-restore
+          --filter "Category=Integration"
+          --logger "trx;LogFileName=integration-tests.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: TestResults/*.trx
