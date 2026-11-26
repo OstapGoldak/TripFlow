@@ -1,0 +1,57 @@
+# Неперервна інтеграція TripFlow: збирання рішення й запуск модульних тестів.
+# Запускається на кожен push у main, на кожен pull request у main і вручну (вкладка Actions → Run workflow).
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Новий push у ту саму гілку скасовує попередній незавершений запуск
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and unit tests
+    # Проєкт інтерфейсу — WPF (net10.0-windows), тому збираємо лише на Windows
+    runs-on: windows-latest
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore TripFlow.sln
+
+      - name: Build
+        run: dotnet build TripFlow.sln --configuration Release --no-restore
+
+      # Інтеграційні тести потребують LocalDB, їх запускає окремий job
+      - name: Unit tests
+        run: >
+          dotnet test TripFlow.sln
+          --configuration Release
+          --no-build
+          --filter "Category!=Integration"
+          --logger "trx;LogFileName=unit-tests.trx"
+          --results-directory TestResults
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: TestResults/*.trx
